@@ -33,8 +33,8 @@ export class PaymentsService {
       },
       line_items: lineItems,
       mode: 'payment',
-      success_url: 'http://localhost:3003/payments/success',
-      cancel_url: 'http://localhost:3003/payments/cancel',
+      success_url: envs.successUrl,
+      cancel_url: envs.cancelUrl,
     });
 
     return session;
@@ -45,7 +45,7 @@ export class PaymentsService {
 
     let event: Stripe.Event;
 
-    const endpointSecret = 'whsec_L8gvxAFKmXDCRrOFO5SLeyHnfIHsaw6Z';
+    const endpointSecret = envs.stripeEndpointSecret;
 
     try {
       event = this.stripe.webhooks.constructEvent(
