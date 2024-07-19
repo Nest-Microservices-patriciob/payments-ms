@@ -1,0 +1,35 @@
+# Dependencies
+FROM node:21-alpine3.19 AS deps
+WORKDIR /usr/src/app
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install
+
+# Building the application
+FROM node:21-alpine3.19 AS builder
+WORKDIR /usr/src/app
+
+# Copy node modules from deps
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+
+
+# Copy anything not included in .dockerignore
+COPY . .
+
+RUN npm run build
+RUN npm ci -f --only=production && npm cache clean --force
+
+
+# Creating final Docker image
+FROM node:21-alpine3.19 AS prod
+WORKDIR /usr/src/app
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Copy /dist directory
+COPY --from=builder /usr/src/app/dist ./dist
+# Create a user that hAS less privileges 
+USER node
+
+EXPOSE 3000
+
+CMD [ "node", "dist/main.js" ]
